@@ -2,14 +2,15 @@ var http = require('http');
 var express = require('express');
 var socketio = require('socket.io');
 var redis = require('redis-connection');
-var Sequelize = require('sequelize');
 
-// Db Settings
-DB_HOST = "localhost";
-DB_DATABASE = "database";
-DB_USERNAME "root";
-DB_PASSWORD = "";
-DB_DIALECT = "postgres";
+try {
+    var models = require('./server/models/index');
+}
+catch (error) {
+    var message = "Did you initialize your db? Make sure to run initdb.sh in project root.";
+    errorAlert("FATAL ERROR", message, error);
+    process.exit(1);
+}
 
 // Ports
 var portApi = process.env.PORT_API || 5000;
@@ -22,42 +23,23 @@ var io = socketio.listen(server);
 var redisClient = redis();
 
 // Initialization
-initSequelize();
 initApi();
 initSocket();
-
-// Initialize sequelize.
-function initSequelize() {
-    var sequelize = new sequelize(
-        DB_DATABASE,
-        DB_USERNAME,
-        DB_PASSWORD, {
-        host: DB_HOST,
-        dialect: DB_DIALECT
-    });
-    sequelize.sync().then(function() {
-        return User.create({
-            username: 'janedoe',
-            birthday: new Date(1980, 6, 20)
-        });
-    }).then(function(jane) {
-        console.log(jane.get({
-            plain: true
-        }));
-    });
-}
 
 // Initialize the API listener and router.
 function initApi() {
     app.use('/api', router);
     app.listen(portApi);
-    // GET
-    router.get('/', function(req, res) {
-        // To do.
-    });
     // POST
     router.post('/add_comment', function(req, res) {
-        // To do.
+        models.Comment.create({
+              userId: req.body.userId,
+              contentId: req.body.contentId,
+              timeStamp: req.body.timeStamp,
+              content: req.body.content
+        }).then(function(comment) {
+            res.json(comment);
+        });
     });
     router.post('/delete_comment', function(req, res) {
         // To do.
@@ -79,4 +61,15 @@ function initSocket() {
         });
     });
     console.log('Listening on Socket Port: ' + portSocket);
+}
+
+// Print an error alert given it's type, user message, and error message.
+function errorAlert(type, message, error) {
+    console.log("\n")
+    console.log(type);
+    console.log("*****");
+    console.log(message);
+    console.log(error);
+    console.log("*****");
+    console.log("\n")
 }
