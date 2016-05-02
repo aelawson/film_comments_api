@@ -8,6 +8,7 @@
     "pg-hstore": "^2.3.2",
     "redis-connection": "^4.0.3",
     "sequelize": "^3.22.0",
+    "sequelize-cli": "^2.4.0",
     "socket.io": "^1.4.5"
   },
   "scripts": {
