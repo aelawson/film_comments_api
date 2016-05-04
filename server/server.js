@@ -1,5 +1,6 @@
 var http = require('http');
 var express = require('express');
+var bodyParser = require('body-parser');
 var socketio = require('socket.io');
 var redis = require('redis-connection');
 
@@ -22,12 +23,9 @@ var router = express.Router();
 var io = socketio.listen(server);
 var redisClient = redis();
 
-// Initialization
-initApi();
-initSocket();
-
 // Initialize the API listener and router.
 function initApi() {
+    app.use(bodyParser())
     app.use('/api', router);
     app.listen(portApi);
     // POST
@@ -41,11 +39,34 @@ function initApi() {
             res.json(comment);
         });
     });
+    router.post('/add_user', function(req, res) {
+        models.User.create({
+              userId: req.body.userId,
+              firstName: req.body.firstName,
+              lastName: req.body.lastName,
+              email: req.body.email
+        }).then(function(user) {
+            res.json(user);
+        });
+    });
     router.post('/delete_comment', function(req, res) {
-        // To do.
+        models.Comment.destroy({
+            where: {
+                userId: req.body.userId
+            }
+        }).then(function() {
+            res.json({ userId: req.body.userId });
+        });
     });
     router.post('/get_comments', function(req, res) {
-        // To do.
+        models.Comment.findAll({
+            where: {
+                contentId: 0,
+                timeStamp: 0
+            }
+        }).then(function(comments) {
+            res.json(comments);
+        });
     });
     console.log('Listening on HTTP Port: ' + portApi);
 }
@@ -73,3 +94,7 @@ function errorAlert(type, message, error) {
     console.log("*****");
     console.log("\n")
 }
+
+// Initialization
+initApi();
+initSocket();
