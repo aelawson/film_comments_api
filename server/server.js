@@ -29,16 +29,6 @@ function initApi() {
     app.use('/api', router);
     app.listen(portApi);
     // POST
-    router.post('/add_comment', function(req, res) {
-        models.Comment.create({
-              userId: req.body.userId,
-              contentId: req.body.contentId,
-              timeStamp: req.body.timeStamp,
-              content: req.body.content
-        }).then(function(comment) {
-            res.json(comment);
-        });
-    });
     router.post('/add_user', function(req, res) {
         models.User.create({
               userId: req.body.userId,
@@ -49,20 +39,41 @@ function initApi() {
             res.json(user);
         });
     });
+    router.post('/add_comment', function(req, res) {
+        models.Comment.create({
+              userId: req.body.userId,
+              contentId: req.body.contentId,
+              timeStamp: req.body.timeStamp,
+              content: req.body.content
+        }).then(function(comment) {
+            res.json(comment);
+        });
+    });
     router.post('/delete_comment', function(req, res) {
         models.Comment.destroy({
             where: {
-                userId: req.body.userId
+                userId: req.body.userId,
+                commentId: req.body.commentId
             }
         }).then(function() {
             res.json({ userId: req.body.userId });
         });
     });
-    router.post('/get_comments', function(req, res) {
+    router.post('/get_comments_timestamp', function(req, res) {
         models.Comment.findAll({
             where: {
-                contentId: 0,
-                timeStamp: 0
+                contentId: req.body.contentId,
+                timeStamp: req.body.timeStamp
+            }
+        }).then(function(comments) {
+            res.json(comments);
+        });
+    });
+    router.post('/get_comments_user', function(req, res) {
+        models.Comment.findAll({
+            where: {
+                contentId: req.body.contentId,
+                userId: req.body.userId
             }
         }).then(function(comments) {
             res.json(comments);
